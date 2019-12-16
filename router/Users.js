@@ -5,6 +5,7 @@ const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 
 const User = require("../models/User");
+
 users.use(cors());
 
 process.env.SECRET_KEY = 'secret';
@@ -69,7 +70,7 @@ users.post('/login', async (req, res) => {
         res.status(400).json({ error: err })
     }
 })
-
+// get profile
 users.get('/profile', async(req, res) => {
     var decoded = jwt.verify(req.headers['authorization'], process.env.SECRET_KEY)
     try {
