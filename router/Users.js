@@ -10,7 +10,7 @@ users.use(cors());
 process.env.SECRET_KEY = 'secret';
 
 //register
-users.post("/register", (req, res) => {
+users.post("/register", async (req, res) => {
     const today = new Date();
     const UserData = {
         first_name: req.body.first_name,
@@ -19,31 +19,31 @@ users.post("/register", (req, res) => {
         password: req.body.password,
         created: today
     }
-    User.findOne({
-        where: {
-            email: req.body.email
+    try {
+        var user = await User.findOne({
+            where: {
+                email: req.body.email
+            }
+        })
+        if (!user) {
+            bcrypt.hash(req.body.password, 10, (err, hash) => {
+                UserData.password = hash
+                User.create(UserData)
+                    .then(user => {
+                        res.json({ status: user.email + ' registered' })
+                    })
+                    .catch(err => {
+                        res.send("error: " + err)
+                    })
+            })
         }
-    })
-        .then(user => {
-            if (!user) {
-                bcrypt.hash(req.body.password, 10, (err, hash) => {
-                    UserData.password = hash
-                    User.create(UserData)
-                        .then(user => {
-                            res.json({ status: user.email + ' registered' })
-                        })
-                        .catch(err => {
-                            res.send("error: " + err)
-                        })
-                })
-            }
-            else {
-                res.json({ error: 'User alreadly exists.' })
-            }
-        })
-        .catch(err => {
-            res.send("error: " + err)
-        })
+        else {
+            res.json({ error: 'User alreadly exists.' })
+        }
+    }
+    catch (err) {
+        res.send("error: " + err)
+    }
 })
 
 //login
@@ -68,7 +68,25 @@ users.post('/login', async (req, res) => {
     catch (err) {
         res.status(400).json({ error: err })
     }
+})
 
+users.get('/profile', async(req, res) => {
+    var decoded = jwt.verify(req.headers['authorization'], process.env.SECRET_KEY)
+    try {
+        var user = await User.findOne({
+            where:{
+                id: decoded.id
+            }
+        });
+        if (user) {
+            res.json(user)
+        } else {
+            res.send("User does not exit")
+        }
+    }
+    catch (err) {
+        res.send("Error: "+ err)
+    }
 })
 
 module.exports = users

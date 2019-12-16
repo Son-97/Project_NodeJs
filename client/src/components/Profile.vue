@@ -25,16 +25,32 @@
 </template>
 
 <script>
-import jwtDecode from 'jwt-decode'
+import axios from "axios"
 export default {
   data () {
     const token = localStorage.token
-    const decoded = jwtDecode(token)
     return {
-      first_name: decoded.first_name,
-      last_name: decoded.last_name,
-      email: decoded.email
+      first_name: '',
+      last_name: '',
+      email: '',
+      token: token
     }
-  }
+  },
+  methods: {
+    getUser() {
+      axios.get('/users/profile', {
+        headers: {'Authorization': this.token}
+      }).then(res => {
+        this.first_name = res.data.first_name
+        this.last_name = res.data.last_name
+        this.email = res.data.email
+      }).catch(err => {
+        router.push({name: 'Login'})
+      })
+    }
+  },
+  mounted() {
+    this.getUser()
+  },
 }
 </script>

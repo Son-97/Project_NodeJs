@@ -39,12 +39,15 @@ export default {
       }).then(res => {
         localStorage.setItem('token', res.data);
         this.email = '',
-        this.password = '',
-        router.push({name: 'Profile'})
+        this.password = ''
+        if (res) {
+          this.emitMethod()
+          router.push({name: 'Profile'})
+        }
       }).catch(err => {
         console.log(err)
       })
-      this.emitMethod()
+      
     },
     emitMethod() {
       EvenBus.$emit('logged-in','loggedin')
